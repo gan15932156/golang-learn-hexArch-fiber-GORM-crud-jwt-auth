@@ -1,0 +1,31 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*_test
+*_test.exe
+
+# Dependency directories (Go Modules)
+# Vendor directory for older Go versions or specific setups
+vendor/
+
+# Go build cache
+.go/
+go.work.sum
+
+# IDE-specific files
+.idea/
+.vscode/
+*.iml
+.DS_Store # macOS specific
+Thumbs.db # Windows specific
+
+# Log files
+*.log
+
+# Temporary files
+*~
+*.tmp
