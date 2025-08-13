@@ -12,7 +12,11 @@ type ResponseUser struct {
 	Email string `json:"email"`
 }
 
+type UpdateUser struct {
+	Name string `json:"name" validate:"required,min=2"`
+}
+
 type RegisterResponse struct {
-	User ResponseUser
-	Auth AuthResponse
+	User ResponseUser `json:"user"`
+	Auth AuthResponse `json:"auth"`
 }

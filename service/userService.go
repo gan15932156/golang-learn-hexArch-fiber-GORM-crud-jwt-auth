@@ -71,3 +71,37 @@ func (u *userService) Register(user *types.User) (*types.RegisterResponse,error)
 			Email: insertedUser.Email},
 		Auth: types.AuthResponse{Token: tokenString}},nil
 }
+
+func (u *userService) GetUsers() (*[]types.ResponseUser,error){
+	users := []types.ResponseUser{}
+
+	resultUsers,err := u.repo.GetAll();
+
+	if  err != nil{
+		return &[]types.ResponseUser{},err
+	}
+
+	for _, user := range *resultUsers {
+		users = append(users,types.ResponseUser{Id: user.ID,Name: user.Name,Email: user.Email})
+		
+	}
+
+	return &users,nil
+}
+
+func (u *userService) UpdateUser(user types.UpdateUser,id uint) error{
+	errrorMessages := customvalidate.Validate(u.validator,user)
+
+	if len(errrorMessages) > 0 {
+		errMsg := strings.Join(errrorMessages, ", ")
+		return errors.New(errMsg)
+	}
+
+	err := u.repo.Update(user,id)
+
+	if err != nil{
+		return err
+	}
+
+	return nil
+}

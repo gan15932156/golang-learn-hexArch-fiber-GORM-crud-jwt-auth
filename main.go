@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"learn-go-goroutine/config"
+	"learn-go-goroutine/handler"
 	"learn-go-goroutine/repo"
 	"learn-go-goroutine/service"
-	"learn-go-goroutine/types"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -19,14 +20,21 @@ import (
 var validate *validator.Validate
 
 func main() {
+	app := fiber.New()
+
+	db := initDb()
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
-	userMockRepo := repo.NewUserRepoMockDb()
-	userService := service.NewUserService(userMockRepo,validate)
+	// userMockRepo := repo.NewUserRepoMockDb()
+	userRepo := repo.NewUserRepoDb(db)
+	userService := service.NewUserService(userRepo,validate)
+	userHandler := handler.NewUserHttphandler(userService)
 
-	result,err := userService.Register(&types.User{Name: "testName",Email: "e@email.com",Password: "1234"})
-	fmt.Print(result,err)
+	app.Post("/user", userHandler.Register)
+	app.Get("/user", userHandler.GetUsers)
+	
+	app.Listen(":3000")
 }  
 
 
@@ -45,6 +53,8 @@ func initDb() *gorm.DB{
 	if err != nil {
 		panic("failed to connect database")
 	}
+	
+	// db.AutoMigrate(&models.User{})
 
 	return db
 }

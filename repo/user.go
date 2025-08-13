@@ -6,6 +6,7 @@ import (
 )
 
 type UserRepo interface {
-	Create(types.User) (*models.User,error)
+	Create(types.User) (models.User,error)
+	Update(types.UpdateUser,uint) error
 	GetAll() (*[]models.User,error)
 }
