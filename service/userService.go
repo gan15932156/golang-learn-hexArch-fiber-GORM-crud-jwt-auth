@@ -2,12 +2,15 @@ package service
 
 import (
 	"errors"
+	"learn-go-goroutine/config"
 	customvalidate "learn-go-goroutine/customValidate"
 	"learn-go-goroutine/repo"
 	"learn-go-goroutine/types"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -36,12 +39,35 @@ func (u *userService) Register(user *types.User) (*types.RegisterResponse,error)
 
 	user.Password = string(hash)
 
-	_,createError := u.repo.Create(*user)
+	insertedUser,createError := u.repo.Create(*user)
 
 	if createError != nil {
         return nil,createError
     }
 
+	secret := config.Config("SECRET")
 
-	return nil,nil
+	if len(secret) == 0{
+		return nil,errors.New("Error")
+	}
+
+	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"sub": insertedUser.Name,                  
+		"iss": "kuay-app",                 
+		"exp": time.Now().Add(time.Hour).Unix(), 
+		"iat": time.Now().Unix(),                
+	})
+
+	tokenString, signedError := claims.SignedString([]byte(secret))
+
+	if signedError != nil {
+        return nil, signedError
+    }
+
+	return &types.RegisterResponse{
+		User: types.ResponseUser{
+			Id: insertedUser.ID,
+			Name: insertedUser.Name,
+			Email: insertedUser.Email},
+		Auth: types.AuthResponse{Token: tokenString}},nil
 }
