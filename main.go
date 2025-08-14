@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"learn-go-goroutine/config"
 	"learn-go-goroutine/handler"
+	"learn-go-goroutine/models"
 	"learn-go-goroutine/repo"
 	"learn-go-goroutine/service"
 
@@ -54,7 +55,7 @@ func initDb() *gorm.DB{
 		panic("failed to connect database")
 	}
 	
-	// db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.User{})
 
 	return db
 }

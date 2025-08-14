@@ -2,16 +2,14 @@ package service
 
 import (
 	"errors"
-	"learn-go-goroutine/config"
 	customvalidate "learn-go-goroutine/customValidate"
 	"learn-go-goroutine/repo"
 	"learn-go-goroutine/types"
+	"learn-go-goroutine/utils"
 	"strings"
 	"time"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type userService struct {
@@ -31,7 +29,7 @@ func (u *userService) Register(user *types.User) (*types.RegisterResponse,error)
 		return nil,errors.New(errMsg)
 	}
 
-	hash, hashedError := bcrypt.GenerateFromPassword([]byte(user.Password),bcrypt.DefaultCost)
+	hash, hashedError := utils.HashPassword(user.Password)
 
 	if hashedError != nil {
         return nil,hashedError
@@ -45,23 +43,17 @@ func (u *userService) Register(user *types.User) (*types.RegisterResponse,error)
         return nil,createError
     }
 
-	secret := config.Config("SECRET")
-
-	if len(secret) == 0{
-		return nil,errors.New("Error")
+	jwtPayload := utils.JwtPayload{
+		Sub: insertedUser.Name,
+		Iss: "App",
+		Exp: time.Now().Add(time.Hour).Unix(),
+		Iat: time.Now().Unix(),
 	}
 
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": insertedUser.Name,                  
-		"iss": "kuay-app",                 
-		"exp": time.Now().Add(time.Hour).Unix(), 
-		"iat": time.Now().Unix(),                
-	})
+	token,errorToken := utils.SignJwtToken(&jwtPayload)
 
-	tokenString, signedError := claims.SignedString([]byte(secret))
-
-	if signedError != nil {
-        return nil, signedError
+	if errorToken != nil {
+        return nil, errorToken
     }
 
 	return &types.RegisterResponse{
@@ -69,7 +61,7 @@ func (u *userService) Register(user *types.User) (*types.RegisterResponse,error)
 			Id: insertedUser.ID,
 			Name: insertedUser.Name,
 			Email: insertedUser.Email},
-		Auth: types.AuthResponse{Token: tokenString}},nil
+		Auth: types.AuthResponse{Token: token}},nil
 }
 
 func (u *userService) GetUsers() (*[]types.ResponseUser,error){
