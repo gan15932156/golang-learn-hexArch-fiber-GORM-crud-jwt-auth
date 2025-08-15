@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"learn-go-goroutine/config"
 	"learn-go-goroutine/handler"
+	"learn-go-goroutine/middleware"
 	"learn-go-goroutine/models"
 	"learn-go-goroutine/repo"
 	"learn-go-goroutine/service"
@@ -31,13 +32,19 @@ func main() {
 	userRepo := repo.NewUserRepoDb(db)
 	userService := service.NewUserService(userRepo,validate)
 	userHandler := handler.NewUserHttphandler(userService)
+	
+	authRepo := repo.NewAuthRepoDb(db)
+	authServive := service.NewAuthService(authRepo,validate)
+	authHandler := handler.NewAuthHttpHandler(authServive)
 
 	app.Post("/user", userHandler.Register)
-	app.Get("/user", userHandler.GetUsers)
+	app.Get("/user", middleware.Protected(),userHandler.GetUsers)
 	
+	app.Post("/signIn",authHandler.SignIn)
+
+
 	app.Listen(":3000")
 }  
-
 
 func initDb() *gorm.DB{
 

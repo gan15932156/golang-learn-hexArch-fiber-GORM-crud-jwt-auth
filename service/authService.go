@@ -2,13 +2,15 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	customvalidate "learn-go-goroutine/customValidate"
 	"learn-go-goroutine/repo"
 	"learn-go-goroutine/types"
+	"learn-go-goroutine/utils"
 	"strings"
+	"time"
 
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type authService struct {
@@ -28,13 +30,30 @@ func (a *authService) SignIn(cred *types.SignInRequest) (*types.AuthResponse,err
 		return nil,errors.New(errMsg)
 	}
 
-	user,err := a.authRepo.GetUserByEmail(cred.Email)
+	user,errGetUser := a.authRepo.GetUserByEmail(cred.Email)
 
-	if err != nil{
-		return nil,err
+	if errGetUser != nil{
+		return nil,errGetUser
 	}
 
-	fmt.Println(user)
+	errCompare := bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(cred.Password))
+
+	if errCompare != nil{
+		return nil,errors.New("invalid credential")
+	}
+
+	jwtPayload := utils.JwtPayload{
+		Sub: user.Name,
+		Iss: "App",
+		Exp: time.Now().Add(time.Hour).Unix(),
+		Iat: time.Now().Unix(),
+	}
+
+	token,errorToken := utils.SignJwtToken(&jwtPayload)
+
+	if errorToken != nil {
+        return nil, errorToken
+    }
 	
-	return nil,nil
+	return &types.AuthResponse{Token: token},nil
 }
