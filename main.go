@@ -18,6 +18,7 @@ import (
 // มีประโยชน์มั้ง
 // https://reserved-poppy-sheep-762.medium.com/%E0%B8%A1%E0%B8%B2%E0%B8%97%E0%B8%B3-password-hashing-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-bcrypt-%E0%B8%9E%E0%B8%A3%E0%B9%89%E0%B8%AD%E0%B8%A1%E0%B8%81%E0%B8%B1%E0%B8%9A%E0%B8%97%E0%B8%B3-jwt-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-golang-%E0%B8%81%E0%B8%B1%E0%B8%99-db38fe2e4d38
 // https://kritwis.medium.com/golang-%E0%B8%97%E0%B8%B3-jwt-%E0%B8%94%E0%B9%89%E0%B8%A7%E0%B8%A2-gin-framework-%E0%B9%81%E0%B8%A5%E0%B8%B0-go-module-%E0%B8%AD%E0%B8%A2%E0%B9%88%E0%B8%B2%E0%B8%87%E0%B8%87%E0%B9%88%E0%B8%B2%E0%B8%A2-6e016fb8e30
+// https://medium.com/@rluders/improving-request-validation-and-response-handling-in-go-microservices-cc54208123f2
 
 var validate *validator.Validate
 
@@ -28,7 +29,6 @@ func main() {
 
 	validate = validator.New(validator.WithRequiredStructEnabled())
 
-	// userMockRepo := repo.NewUserRepoMockDb()
 	userRepo := repo.NewUserRepoDb(db)
 	userService := service.NewUserService(userRepo,validate)
 	userHandler := handler.NewUserHttphandler(userService)

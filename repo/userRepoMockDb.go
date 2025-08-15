@@ -4,23 +4,28 @@ import (
 	"learn-go-goroutine/models"
 	"learn-go-goroutine/types"
 
-	"gorm.io/gorm"
+	"github.com/stretchr/testify/mock"
 )
 
 type userRepoMockDb struct {
+	mock.Mock
 }
-
-var users = []models.User{}
 
 func NewUserRepoMockDb() *userRepoMockDb {
 	return &userRepoMockDb{}
 }
 
-func (u *userRepoMockDb) Create(user types.User) (*models.User,error) {
-	newUser := models.User{Model: gorm.Model{ID: 1},Name: user.Name,Email: user.Email,Password: user.Password}
-	users = append(users,newUser)
-	return &newUser,nil
+func (u *userRepoMockDb) Create(user types.User) (models.User,error){
+	args := u.Called(user)
+	return args.Get(0).(models.User),args.Error(1)
 }
+
+func (u *userRepoMockDb) Update(user types.UpdateUser,id uint) error{
+	args := u.Called(user,id)
+	return args.Error(0)
+}
+
 func (u *userRepoMockDb) GetAll() (*[]models.User,error){
-	return &users,nil
+	args := u.Called()
+	return args.Get(0).(*[]models.User),args.Error(1)
 }
